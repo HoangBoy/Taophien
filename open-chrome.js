@@ -1,9 +1,8 @@
 const { Builder, By, until } = require('selenium-webdriver');
 const chrome = require('selenium-webdriver/chrome');
 const fs = require('fs');
+const path = require('path');
 
-
-// Chuyển đổi dữ liệu từ excel
 function parseLiveSessions(rawData) {
   const tomorrow = new Date();
   tomorrow.setDate(tomorrow.getDate() + 1);
@@ -12,46 +11,60 @@ function parseLiveSessions(rawData) {
   const yyyy = tomorrow.getFullYear();
   const dateStr = `${dd}/${mm}/${yyyy}`;
 
-  const lines = rawData.trim().split('\n').map(line => line.trim()).filter(Boolean);
+  const lines = rawData.split('\n'); // KHÔNG trim() ở đây
 
   let currentOrderId = '';
   let currentRoom = '';
+  let currentAssistant = '';
   let sessionList = [];
 
+  function convertTime(str) {
+    return str
+      .replace(/h30/gi, ':30')
+      .replace(/h/gi, ':00');
+  }
+
   lines.forEach(line => {
-    const parts = line.split('\t').map(p => p.trim());
-    if (parts.length >= 3) {
-      const [orderId, , timeRange, mainHost, note, , roomName] = parts;
+    if (!line.trim()) return; // bỏ hẳn dòng trắng (không có tab nào)
 
-      // Lấy orderId nếu có
-      if (orderId) currentOrderId = orderId;
-      // Lấy roomName nếu có
-      if (roomName) currentRoom = roomName;
+    const parts = line.split('\t').map(p => p.trim()); // trim từng ô
 
-      // Nếu có giờ live
-      if (timeRange && timeRange.includes('-')) {
-        const [start, end] = timeRange.split('-').map(s => s.trim().replace('h', ':00'));
+    const orderId = parts[0] || '';
+    const timeRange = parts[2] || '';
+    const mainHost = parts[3] || '';
+    const assistant = parts[4] || '';
+    const note = parts[5] || '';
+    const roomName = parts[6] || '';
 
-        const session = {
-          orderId: currentOrderId,
-          startTime: `${start} ${dateStr}`,
-          endTime: `${end} ${dateStr}`,
-          note: note ? note.trim() : '',
-          assistant: '',
-          roomName: currentRoom
-        };
+    if (orderId) currentOrderId = orderId;
+    if (roomName) currentRoom = roomName;
+    if (assistant) currentAssistant = assistant;
 
-        if (mainHost && mainHost.trim()) {
-          session.mainHost = mainHost.trim();
-        }
+    if (timeRange && timeRange.includes('-')) {
+      const [startRaw, endRaw] = timeRange.split('-').map(s => s.trim());
+      const start = convertTime(startRaw);
+      const end = convertTime(endRaw);
 
-        sessionList.push(session);
-      }
+      const session = {
+        orderId: currentOrderId,
+        startTime: `${start} ${dateStr}`,
+        endTime: `${end} ${dateStr}`,
+        note: note,
+        assistant: currentAssistant,
+        roomName: currentRoom
+      };
+
+      if (mainHost) session.mainHost = mainHost;
+
+      sessionList.push(session);
     }
   });
 
+  console.log("const sessionList =", JSON.stringify(sessionList, null, 2));
   return sessionList;
 }
+// run
+
 
 
 // ✅ Đăng nhập và trả về driver
