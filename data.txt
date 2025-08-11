@@ -1,0 +1,32 @@
+Nhãn (orderId)	Lĩnh vực live	"Giờ live
+"	Live chính(mainHost)	Trợ live(assistant)	Note(note)	Phòng live(roomName)
+Anzani	Ghế văn phòng	21h - 23h	Ngọc Anh		Tiktok	P KT cũ
+Icotton- đơn mới	Thời trang nữ	8h - 10h	Hòa			phòng vip 1
+		12h - 14h	Hòa			
+Dương hoa - quần 6.2025	Thời trang nữ	9h- 11h	Trinh		Tiktok	Phòng live 3
+				  		
+		20h - 22h	Quỳnh			
+						
+Tã Bỉm Trường Phát- đơn mới	Bé và gia đình	15h - 17h	Trinh	Lấy thêm sò mát máy	Tiktok	Phòng live 7
+		17h - 19h	Hải 	Lấy thêm sò mát máy		
+		19h - 21h	Trinh	Lấy thêm sò mát máy		
+		21h - 23h	Thơm	Lấy thêm sò mát máy		
+						
+Subici - HN đợt 2	Thời trang nữ	9h- 11h	Ma Hà	máy 26 live đúng máy	Tiktok	Phòng live 4
+		11h30- 13h30	Lan Anh	máy 26 live đúng máy		
+		20h - 22h	Ma Hà			
+Saymee 13.06.25	Sim					Phòng live 9
+		19h - 21h		T3, T5, T7, CN	Tiktok	
+Femfresh	Mỹ phẩm	10h30- 12h30	Đinh Nguyệt	bot	Tiktok	Phòng live 8
+Batiste	Mỹ phẩm	18h - 20h	Thơm		Tiktok	Phòng live 8
+Trangia	Mỹ phẩm	20h30- 22h30	Nhung	Oxiclean-->60%, aff	Tiktok	Phòng live 8
+Aimi	Thời trang nữ	20h - 22h	Thảo		Tiktok	Phòng live 3
+Wir group	Mỹ phẩm	9h- 11h	Hải			Phòng live 1
+		12h - 14h	Hải	Đăng nhập		
+		14h - 16h	Nhung			
+Ru mơ	Thời trang nữ	11h30- 13h30	Duyên		Tiktok	Phòng live 6
+Thuka Garden 	Nông sản	11h30- 13h30	Trinh		shopee	Phòng live 9
+		20h - 22h	Đinh Nguyệt		shopee	
+Hanzi	Thời trang nữ	18h - 20h	Nhung		shopee	Phòng live 5
+LINGROUP	BVS 	11h30- 13h30	Mẫu ngoài 	 	Tiktok	Phòng live 3
+		14h - 16h	Bình		shopee	
