@@ -1,5 +1,58 @@
 const { Builder, By, until } = require('selenium-webdriver');
 const chrome = require('selenium-webdriver/chrome');
+const fs = require('fs');
+
+
+// Chuyển đổi dữ liệu từ excel
+function parseLiveSessions(rawData) {
+  const tomorrow = new Date();
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  const dd = String(tomorrow.getDate()).padStart(2, '0');
+  const mm = String(tomorrow.getMonth() + 1).padStart(2, '0');
+  const yyyy = tomorrow.getFullYear();
+  const dateStr = `${dd}/${mm}/${yyyy}`;
+
+  const lines = rawData.trim().split('\n').map(line => line.trim()).filter(Boolean);
+
+  let currentOrderId = '';
+  let currentRoom = '';
+  let sessionList = [];
+
+  lines.forEach(line => {
+    const parts = line.split('\t').map(p => p.trim());
+    if (parts.length >= 3) {
+      const [orderId, , timeRange, mainHost, note, , roomName] = parts;
+
+      // Lấy orderId nếu có
+      if (orderId) currentOrderId = orderId;
+      // Lấy roomName nếu có
+      if (roomName) currentRoom = roomName;
+
+      // Nếu có giờ live
+      if (timeRange && timeRange.includes('-')) {
+        const [start, end] = timeRange.split('-').map(s => s.trim().replace('h', ':00'));
+
+        const session = {
+          orderId: currentOrderId,
+          startTime: `${start} ${dateStr}`,
+          endTime: `${end} ${dateStr}`,
+          note: note ? note.trim() : '',
+          assistant: '',
+          roomName: currentRoom
+        };
+
+        if (mainHost && mainHost.trim()) {
+          session.mainHost = mainHost.trim();
+        }
+
+        sessionList.push(session);
+      }
+    }
+  });
+
+  return sessionList;
+}
+
 
 // ✅ Đăng nhập và trả về driver
 async function loginToWebsite(email, password) {
@@ -7,7 +60,7 @@ async function loginToWebsite(email, password) {
 
   try {
     await driver.manage().window().maximize();
-    await driver.get('https://cms.gmv.vn/admin/sessions/create');
+    await driver.get('https://gmv.vn/admin/sessions/create');
     const emailInput = await driver.wait(until.elementLocated(By.name('email')), 10000);
     await emailInput.sendKeys(email);
 
@@ -294,7 +347,7 @@ async function createSessionInNewTab(driver, session) {
     const handles = await driver.getAllWindowHandles();
     const newTab = handles[handles.length - 1];
     await driver.switchTo().window(newTab);
-    await driver.get('https://cms.gmv.vn/admin/sessions/create');
+    await driver.get('https://gmv.vn/admin/sessions/create');
 
     await createSession(driver, session);
   } catch (err) {
@@ -305,37 +358,19 @@ async function createSessionInNewTab(driver, session) {
 // ✅ Danh sách phiên cần tạo
 
 
-const sessionList = [
-  { orderId: '080624KPIR', startTime: '21:00 31/07/2025', endTime: '23:00 31/07/2025', note: '', mainHost: 'Ngọc Anh', assistant: 'Tiktok', roomName: 'P KT cũ' },
-  { orderId: '100625CPMZ', startTime: '08:00 31/07/2025', endTime: '10:00 31/07/2025', note: '', mainHost: 'Hòa', assistant: '', roomName: 'Phòng live 5' },
-  { orderId: '100625CPMZ', startTime: '12:00 31/07/2025', endTime: '14:00 31/07/2025', note: '', mainHost: 'Hòa', assistant: '', roomName: '' },
-  { orderId: '130625AFNP', startTime: '09:00 31/07/2025', endTime: '11:00 31/07/2025', note: '', mainHost: 'Ma Hà', assistant: 'Tiktok', roomName: '' },
-  { orderId: '130625AFNP', startTime: '20:00 31/07/2025', endTime: '22:00 31/07/2025', note: '', mainHost: 'Ma Hà', assistant: '', roomName: 'Phòng live 3' },
-  { orderId: '100725DCVZ', startTime: '15:00 31/07/2025', endTime: '17:00 31/07/2025', note: 'Lấy thêm sò mát máy', mainHost: 'Hiền', assistant: 'Tiktok', roomName: '' },
-  { orderId: '100725DCVZ', startTime: '17:00 31/07/2025', endTime: '19:00 31/07/2025', note: 'Lấy thêm sò mát máy', mainHost: 'Trinh', assistant: '', roomName: 'Phòng live 7' },
-  { orderId: '100725DCVZ', startTime: '19:00 31/07/2025', endTime: '21:00 31/07/2025', note: 'Lấy thêm sò mát máy', mainHost: 'Hải', assistant: '', roomName: '' },
-  { orderId: '100725DCVZ', startTime: '21:00 31/07/2025', endTime: '23:00 31/07/2025', note: 'Lấy thêm sò mát máy', mainHost: 'Thơm', assistant: '', roomName: '' },
-  { orderId: '270525REAX', startTime: '09:00 31/07/2025', endTime: '11:00 31/07/2025', note: 'máy 26 live đúng máy', mainHost: 'Nhung', assistant: 'Tiktok', roomName: '' },
-  { orderId: '270525REAX', startTime: '11:30 31/07/2025', endTime: '13:30 31/07/2025', note: 'máy 26 live đúng máy', mainHost: 'Duyên', assistant: '', roomName: 'Phòng live 4' },
-  { orderId: '270525REAX', startTime: '20:00 31/07/2025', endTime: '22:00 31/07/2025', note: 'máy 3', mainHost: 'Thảo', assistant: '', roomName: '' },
-  { orderId: '130625JEZQ', startTime: '19:00 31/07/2025', endTime: '21:00 31/07/2025', note: 'T3, T5, T7, CN', mainHost: 'Lan Anh', assistant: 'Tiktok', roomName: 'Phòng live 9' },
-  { orderId: 'Femfresh', startTime: '10:30 31/07/2025', endTime: '12:30 31/07/2025', note: '', mainHost: 'Hiền', assistant: 'Tiktok', roomName: 'Phòng live 8' },
-  { orderId: 'Batiste', startTime: '18:00 31/07/2025', endTime: '20:00 31/07/2025', note: '', mainHost: 'Thơm', assistant: 'Tiktok', roomName: 'Phòng live 8' },
-  { orderId: 'Trangia', startTime: '20:30 31/07/2025', endTime: '22:30 31/07/2025', note: 'Oxiclean-->60%, aff', mainHost: 'Duyên', assistant: 'Tiktok', roomName: 'Phòng live 8' },
-  { orderId: 'Aimi', startTime: '20:00 31/07/2025', endTime: '22:00 31/07/2025', note: '', mainHost: 'Tăng Hà', assistant: 'Tiktok', roomName: 'Phòng live 3' },
-  { orderId: 'LINGROUP', startTime: '11:30 31/07/2025', endTime: '13:30 31/07/2025', note: '', mainHost: 'Trinh', assistant: 'Tiktok', roomName: 'Phòng live 9' },
-  { orderId: 'Ru mơ', startTime: '11:30 31/07/2025', endTime: '13:30 31/07/2025', note: '', mainHost: 'Nhung', assistant: 'Tiktok', roomName: 'Phòng live 6' },
-  { orderId: 'Monnyny', startTime: '', endTime: '', note: 'báo nhãn đổi giờ', mainHost: '', assistant: 'Tiktok', roomName: 'Phòng live 5' },
-  { orderId: 'Monnyny', startTime: '17:30 31/07/2025', endTime: '19:30 31/07/2025', note: '', mainHost: 'Thảo', assistant: 'Tiktok', roomName: '' },
-  { orderId: 'Thuka Garden', startTime: '11:00 31/07/2025', endTime: '13:00 31/07/2025', note: '', mainHost: 'Hải', assistant: 'Tiktok', roomName: 'Phòng live 5' },
-  { orderId: 'Thuka Garden', startTime: '20:00 31/07/2025', endTime: '22:00 31/07/2025', note: '', mainHost: 'Trinh', assistant: 'Tiktok', roomName: '' }
-];
+
+
 
 
 // ✅ Gọi hàm chính
 (async () => {
   const driver = await loginToWebsite('hoangboytq@gmail.com', 'MxRKPGFhKj@5BXZ');
+
+
   if (driver) {
+    // Gọi hàm chuyển đổi dữ liệu và lấy data
+    const rawData = fs.readFileSync('data.txt', 'utf-8');
+    const sessionList = parseLiveSessions(rawData);
     for (const session of sessionList) {
       await createSessionInNewTab(driver, session);
       await driver.sleep(1000);
